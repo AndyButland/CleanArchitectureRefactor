@@ -1,0 +1,65 @@
+@model Pluralsight.CleanArchitecture.Web.ViewModels.RecipeIndexViewModel
+@{
+    ViewData["Title"] = "Recipes";
+}
+
+<h1>Recipes</h1>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-auto">
+        <select asp-for="SelectedCategoryId" name="categoryId" class="form-select" asp-items="Model.Categories">
+            <option value="">All Categories</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="difficulty" class="form-select">
+            <option value="">All Difficulties</option>
+            @for (int i = 1; i <= 5; i++)
+            {
+                <option value="@i" selected="@(Model.SelectedDifficulty == i)">@i</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Recipe</a>
+</p>
+
+@if (Model.Recipes.Count == 0)
+{
+    <div class="alert alert-info">No recipes found.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Difficulty</th>
+                <th>Prep Time</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var recipe in Model.Recipes)
+            {
+                <tr>
+                    <td>@recipe.Title</td>
+                    <td>@recipe.CategoryName</td>
+                    <td>@recipe.DifficultyLevel / 5</td>
+                    <td>@recipe.PrepTimeInMinutes min</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@recipe.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@recipe.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
