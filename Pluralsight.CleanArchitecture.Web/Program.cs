@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using Pluralsight.CleanArchitecture.Web.Data;
+using Pluralsight.CleanArchitecture.Application;
+using Pluralsight.CleanArchitecture.Infrastructure;
+using Pluralsight.CleanArchitecture.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +12,8 @@ builder.Services.AddAntiforgery(options =>
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<RecipeCatalogDbContext>(options =>
-    options.UseSqlite("Data Source=recipecatalog.db"));
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices();
 
 var app = builder.Build();
 

@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="Pluralsight.CleanArchitecture.Domain/Pluralsight.CleanArchitecture.Domain.csproj" />
+  <Project Path="Pluralsight.CleanArchitecture.Application/Pluralsight.CleanArchitecture.Application.csproj" />
+  <Project Path="Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj" />
   <Project Path="Pluralsight.CleanArchitecture.Web/Pluralsight.CleanArchitecture.Web.csproj" />
 </Solution>

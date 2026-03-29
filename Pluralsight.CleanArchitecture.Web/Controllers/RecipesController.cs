@@ -1,50 +1,39 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Pluralsight.CleanArchitecture.Web.Data;
-using Pluralsight.CleanArchitecture.Web.Models;
+using Pluralsight.CleanArchitecture.Application.Services;
 using Pluralsight.CleanArchitecture.Web.ViewModels;
 
 namespace Pluralsight.CleanArchitecture.Web.Controllers;
 
 public class RecipesController : Controller
 {
-    private readonly RecipeCatalogDbContext _context;
+    private readonly IRecipeService _recipeService;
 
-    public RecipesController(RecipeCatalogDbContext context)
+    private readonly ICategoryService _categoryService;
+
+    public RecipesController(IRecipeService recipeService, ICategoryService categoryService)
     {
-        _context = context;
+        _recipeService = recipeService;
+        _categoryService = categoryService;
     }
 
     public async Task<IActionResult> Index(Guid? categoryId, int? difficulty)
     {
-        var query = _context.Recipes.Include(r => r.Category).AsQueryable();
-
-        if (categoryId.HasValue)
-        {
-            query = query.Where(r => r.CategoryId == categoryId.Value);
-        }
-
-        if (difficulty.HasValue)
-        {
-            query = query.Where(r => r.DifficultyLevel == difficulty.Value);
-        }
-
-        var recipes = await query.OrderBy(r => r.Title).ToListAsync();
+        var recipes = await _recipeService.GetAllAsync(categoryId, difficulty);
+        var categories = await _categoryService.GetAllAsync();
 
         var viewModel = new RecipeIndexViewModel
         {
             SelectedCategoryId = categoryId,
             SelectedDifficulty = difficulty,
-            Categories = await _context.Categories
-                .OrderBy(c => c.Name)
+            Categories = categories
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
-                .ToListAsync(),
+                .ToList(),
             Recipes = recipes.Select(r => new RecipeListItem
             {
                 Id = r.Id,
                 Title = r.Title,
-                CategoryName = r.Category.Name,
+                CategoryName = categories.FirstOrDefault(c => c.Id == r.CategoryId)?.Name ?? "",
                 DifficultyLevel = r.DifficultyLevel,
                 PrepTimeInMinutes = r.PrepTimeInMinutes
             }).ToList()
@@ -67,50 +56,31 @@ public class RecipesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(RecipeFormViewModel viewModel)
     {
-        if (viewModel.DifficultyLevel < 1 || viewModel.DifficultyLevel > 5)
-        {
-            ModelState.AddModelError(nameof(viewModel.DifficultyLevel), "Difficulty must be between 1 and 5.");
-        }
-
-        if (viewModel.PrepTimeInMinutes <= 0)
-        {
-            ModelState.AddModelError(nameof(viewModel.PrepTimeInMinutes), "Prep time must be greater than zero.");
-        }
-
-        if (!await _context.Categories.AnyAsync(c => c.Id == viewModel.CategoryId))
-        {
-            ModelState.AddModelError(nameof(viewModel.CategoryId), "The selected category does not exist.");
-        }
-
         if (!ModelState.IsValid)
         {
             viewModel.Categories = await GetCategorySelectList();
             return View(viewModel);
         }
 
-        var recipe = new Recipe
+        try
         {
-            Id = Guid.NewGuid(),
-            Title = viewModel.Title,
-            Description = viewModel.Description,
-            CategoryId = viewModel.CategoryId,
-            DifficultyLevel = viewModel.DifficultyLevel,
-            PrepTimeInMinutes = viewModel.PrepTimeInMinutes
-        };
-
-        _context.Recipes.Add(recipe);
-        await _context.SaveChangesAsync();
-
-        var notification = $"[{DateTime.UtcNow:O}] New recipe created: {recipe.Title} (ID: {recipe.Id})\n";
-        await System.IO.File.AppendAllTextAsync(
-            Path.Combine("notifications", "recipe-notifications.txt"), notification);
+            await _recipeService.CreateAsync(
+                viewModel.Title, viewModel.Description, viewModel.CategoryId,
+                viewModel.DifficultyLevel, viewModel.PrepTimeInMinutes);
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            viewModel.Categories = await GetCategorySelectList();
+            return View(viewModel);
+        }
 
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(Guid id)
     {
-        var recipe = await _context.Recipes.FindAsync(id);
+        var recipe = await _recipeService.GetByIdAsync(id);
 
         if (recipe == null)
         {
@@ -135,61 +105,44 @@ public class RecipesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Guid id, RecipeFormViewModel viewModel)
     {
-        if (viewModel.DifficultyLevel < 1 || viewModel.DifficultyLevel > 5)
-        {
-            ModelState.AddModelError(nameof(viewModel.DifficultyLevel), "Difficulty must be between 1 and 5.");
-        }
-
-        if (viewModel.PrepTimeInMinutes <= 0)
-        {
-            ModelState.AddModelError(nameof(viewModel.PrepTimeInMinutes), "Prep time must be greater than zero.");
-        }
-
-        if (!await _context.Categories.AnyAsync(c => c.Id == viewModel.CategoryId))
-        {
-            ModelState.AddModelError(nameof(viewModel.CategoryId), "The selected category does not exist.");
-        }
-
         if (!ModelState.IsValid)
         {
             viewModel.Categories = await GetCategorySelectList();
             return View(viewModel);
         }
 
-        var recipe = await _context.Recipes.FindAsync(id);
-
-        if (recipe == null)
+        try
         {
-            return NotFound();
+            await _recipeService.UpdateAsync(
+                id, viewModel.Title, viewModel.Description, viewModel.CategoryId,
+                viewModel.DifficultyLevel, viewModel.PrepTimeInMinutes);
         }
-
-        recipe.Title = viewModel.Title;
-        recipe.Description = viewModel.Description;
-        recipe.CategoryId = viewModel.CategoryId;
-        recipe.DifficultyLevel = viewModel.DifficultyLevel;
-        recipe.PrepTimeInMinutes = viewModel.PrepTimeInMinutes;
-
-        await _context.SaveChangesAsync();
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            viewModel.Categories = await GetCategorySelectList();
+            return View(viewModel);
+        }
 
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Delete(Guid id)
     {
-        var recipe = await _context.Recipes
-            .Include(r => r.Category)
-            .FirstOrDefaultAsync(r => r.Id == id);
+        var recipe = await _recipeService.GetByIdAsync(id);
 
         if (recipe == null)
         {
             return NotFound();
         }
 
+        var categories = await _categoryService.GetAllAsync();
+
         var viewModel = new RecipeDeleteViewModel
         {
             Id = recipe.Id,
             Title = recipe.Title,
-            CategoryName = recipe.Category.Name,
+            CategoryName = categories.FirstOrDefault(c => c.Id == recipe.CategoryId)?.Name ?? "",
             DifficultyLevel = recipe.DifficultyLevel,
             PrepTimeInMinutes = recipe.PrepTimeInMinutes
         };
@@ -201,22 +154,15 @@ public class RecipesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        var recipe = await _context.Recipes.FindAsync(id);
-
-        if (recipe != null)
-        {
-            _context.Recipes.Remove(recipe);
-            await _context.SaveChangesAsync();
-        }
-
+        await _recipeService.DeleteAsync(id);
         return RedirectToAction(nameof(Index));
     }
 
     private async Task<List<SelectListItem>> GetCategorySelectList()
     {
-        return await _context.Categories
-            .OrderBy(c => c.Name)
+        var categories = await _categoryService.GetAllAsync();
+        return categories
             .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
-            .ToListAsync();
+            .ToList();
     }
 }
