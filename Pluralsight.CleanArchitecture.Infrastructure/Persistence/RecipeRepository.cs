@@ -15,7 +15,7 @@ public class RecipeRepository : IRecipeRepository
 
     public async Task<List<Recipe>> GetAllAsync(Guid? categoryId = null, int? difficulty = null)
     {
-        var query = _context.Recipes.AsQueryable();
+        var query = _context.Recipes.Include(r => r.Category).AsQueryable();
 
         if (categoryId.HasValue)
         {

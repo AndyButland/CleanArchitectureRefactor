@@ -10,6 +10,8 @@ public class Recipe
 
     public Guid CategoryId { get; set; }
 
+    public Category Category { get; set; } = null!;
+
     public int DifficultyLevel { get; private set; }
 
     public int PrepTimeInMinutes { get; private set; }
@@ -24,6 +26,11 @@ public class Recipe
         if (prepTimeInMinutes <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(prepTimeInMinutes), "Prep time must be greater than zero.");
+        }
+
+        if (prepTimeInMinutes > 60 && difficultyLevel < 3)
+        {
+            throw new ArgumentException("Recipes over one hour must have a difficulty of at least 3.");
         }
 
         DifficultyLevel = difficultyLevel;

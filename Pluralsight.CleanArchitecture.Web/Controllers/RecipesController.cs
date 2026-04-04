@@ -33,7 +33,7 @@ public class RecipesController : Controller
             {
                 Id = r.Id,
                 Title = r.Title,
-                CategoryName = categories.FirstOrDefault(c => c.Id == r.CategoryId)?.Name ?? "",
+                CategoryName = r.Category.Name,
                 DifficultyLevel = r.DifficultyLevel,
                 PrepTimeInMinutes = r.PrepTimeInMinutes
             }).ToList()
@@ -136,13 +136,11 @@ public class RecipesController : Controller
             return NotFound();
         }
 
-        var categories = await _categoryService.GetAllAsync();
-
         var viewModel = new RecipeDeleteViewModel
         {
             Id = recipe.Id,
             Title = recipe.Title,
-            CategoryName = categories.FirstOrDefault(c => c.Id == recipe.CategoryId)?.Name ?? "",
+            CategoryName = recipe.Category.Name,
             DifficultyLevel = recipe.DifficultyLevel,
             PrepTimeInMinutes = recipe.PrepTimeInMinutes
         };
