@@ -8,5 +8,5 @@ obj/
 .claude/
 
 ## App runtime
-notifications/
+**/notifications/*.txt
 recipecatalog.db*
