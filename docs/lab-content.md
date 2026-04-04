@@ -243,7 +243,7 @@ The Application layer isn't only entities and interfaces though. Application ser
 
 ### Task 3.4: Create the recipe service interface and implementation
 
-Create a new file `IRecipeService.cs` inside the `Services` folder. Define an interface in the `Pluralsight.CleanArchitecture.Application.Services` namespace with the following methods:
+Create a new file `IRecipeService.cs` inside the `Services` folder. You will need a `using` statement for `Pluralsight.CleanArchitecture.Domain.Entities`. Define an interface in the `Pluralsight.CleanArchitecture.Application.Services` namespace with the following methods:
 
 - `Task<List<Recipe>> GetAllAsync(Guid? categoryId = null, int? difficulty = null)`
 - `Task<Recipe?> GetByIdAsync(Guid id)`
@@ -251,7 +251,7 @@ Create a new file `IRecipeService.cs` inside the `Services` folder. Define an in
 - `Task UpdateAsync(Guid id, string title, string? description, Guid categoryId, int difficultyLevel, int prepTimeInMinutes)`
 - `Task DeleteAsync(Guid id)`
 
-Then create `RecipeService.cs` in the same folder. This class should implement `IRecipeService` and accept three constructor parameters: `IRecipeRepository`, `ICategoryRepository`, and `INotificationService`. Store them as private readonly fields.
+Then create `RecipeService.cs` in the same folder. You will need `using` statements for `Pluralsight.CleanArchitecture.Application.Contracts` and `Pluralsight.CleanArchitecture.Domain.Entities`. This class should implement `IRecipeService` and accept three constructor parameters: `IRecipeRepository`, `ICategoryRepository`, and `INotificationService`. Store them as private readonly fields.
 
 Implement the methods as follows:
 
@@ -274,11 +274,11 @@ Compare this to the "before" state. The `Create` and `Edit` actions in the contr
 
 ### Task 3.5: Create the category service interface and implementation
 
-Create `ICategoryService.cs` inside the `Services` folder with a single method:
+Create `ICategoryService.cs` inside the `Services` folder. You will need a `using` statement for `Pluralsight.CleanArchitecture.Domain.Entities`. Define an interface with a single method:
 
 - `Task<List<Category>> GetAllAsync()`
 
-Then create `CategoryService.cs` in the same folder. It should implement `ICategoryService`, accept `ICategoryRepository` as a constructor parameter, and delegate `GetAllAsync` to the repository.
+Then create `CategoryService.cs` in the same folder. You will need `using` statements for `Pluralsight.CleanArchitecture.Application.Contracts` and `Pluralsight.CleanArchitecture.Domain.Entities`. It should implement `ICategoryService`, accept `ICategoryRepository` as a constructor parameter, and delegate `GetAllAsync` to the repository.
 
 ---
 Check:
@@ -304,7 +304,7 @@ Inside the method, register the two services as scoped:
 
 Return the `services` parameter to allow method chaining.
 
-You will need a `using` statement for `Microsoft.Extensions.DependencyInjection`. To make this available, add the `Microsoft.Extensions.DependencyInjection.Abstractions` NuGet package to the Application project:
+You will need `using` statements for `Microsoft.Extensions.DependencyInjection` and `Pluralsight.CleanArchitecture.Application.Services`. To make the first available, add the `Microsoft.Extensions.DependencyInjection.Abstractions` NuGet package to the Application project:
 
 ```
 dotnet add Pluralsight.CleanArchitecture.Application/Pluralsight.CleanArchitecture.Application.csproj package Microsoft.Extensions.DependencyInjection.Abstractions
@@ -418,7 +418,7 @@ Create `RecipeRepository.cs` in the `Persistence` folder. This class should impl
 Implement the methods:
 
 - **GetAllAsync**: query `_context.Recipes` with `.Include(r => r.Category)` to eager-load the related category. Apply optional `Where` clauses if `categoryId` or `difficulty` are provided. Order by `Title` and return the result with `ToListAsync`.
-- **GetByIdAsync**: use `_context.Recipes.FindAsync(id)`.
+- **GetByIdAsync**: use `_context.Recipes.Include(r => r.Category).FirstOrDefaultAsync(r => r.Id == id)` to load the recipe with its category.
 - **AddAsync**: add the recipe to `_context.Recipes`, call `SaveChangesAsync`, and return the recipe.
 - **UpdateAsync**: call `_context.Recipes.Update(recipe)` then `SaveChangesAsync`.
 - **DeleteAsync**: find the recipe by ID, and if it exists, remove it and call `SaveChangesAsync`.
@@ -443,7 +443,7 @@ The data access logic is the same as before, but now it lives in dedicated, focu
 
 ### Task 4.4: Create the FileNotificationService
 
-Create `FileNotificationService.cs` in the `Notifications` folder of the Infrastructure project. This class should implement `INotificationService` from the Application layer.
+Create `FileNotificationService.cs` in the `Notifications` folder of the Infrastructure project. You will need a `using` statement for `Pluralsight.CleanArchitecture.Application.Contracts`. This class should implement `INotificationService` from the Application layer.
 
 Implement the `SendNotificationAsync` method so that it writes a timestamped message to a file at `notifications/recipe-notifications.txt`. You can refer to the `File.AppendAllTextAsync` call in the existing `RecipesController.Create` action for the approach. Format each line as `[{timestamp}] {message}` followed by a newline, using `DateTime.UtcNow` formatted with the round-trip specifier (`"O"`).
 
@@ -462,7 +462,13 @@ Again we need to register the components defined in the project with the depende
 
 -
 
-Create `InfrastructureServiceRegistration.cs` in the root of the Infrastructure project.
+Create `InfrastructureServiceRegistration.cs` in the root of the Infrastructure project. You will need the following `using` statements:
+
+- `Microsoft.EntityFrameworkCore`
+- `Microsoft.Extensions.DependencyInjection`
+- `Pluralsight.CleanArchitecture.Application.Contracts`
+- `Pluralsight.CleanArchitecture.Infrastructure.Notifications`
+- `Pluralsight.CleanArchitecture.Infrastructure.Persistence`
 
 Define a static class `InfrastructureServiceRegistration` in the `Pluralsight.CleanArchitecture.Infrastructure` namespace. Add a public static extension method on `IServiceCollection` called `AddInfrastructureServices` that returns `IServiceCollection`.
 
@@ -572,7 +578,7 @@ Then rewrite each action to delegate to the services:
 - **Create (POST)**: if `ModelState.IsValid`, call `_recipeService.CreateAsync(...)` with the values from the view model. Wrap the call in a `try`/`catch` for `ArgumentException` — if caught, add the exception message to `ModelState` and return the view. On success, redirect to `Index`.
 - **Edit (GET)**: call `_recipeService.GetByIdAsync(id)`. If null, return `NotFound()`. Otherwise populate a `RecipeFormViewModel`.
 - **Edit (POST)**: if `ModelState.IsValid`, call `_recipeService.UpdateAsync(...)`. Use the same `try`/`catch` pattern as Create. On success, redirect to `Index`.
-- **Delete (GET)**: call `_recipeService.GetByIdAsync(id)` and `_categoryService.GetAllAsync()`. If the recipe is null, return `NotFound()`. Populate a `RecipeDeleteViewModel`.
+- **Delete (GET)**: call `_recipeService.GetByIdAsync(id)`. If null, return `NotFound()`. Populate a `RecipeDeleteViewModel` using `recipe.Category.Name` for the category name.
 - **Delete (POST)**: call `_recipeService.DeleteAsync(id)` and redirect to `Index`.
 
 You can also extract a private helper method `GetCategorySelectList()` that calls `_categoryService.GetAllAsync()` and maps the results to `SelectListItem` objects. This avoids repeating that mapping in multiple actions.
