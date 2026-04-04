@@ -48,79 +48,89 @@ public class RecipeCatalogDbContext : DbContext
             new Category { Id = appetizerId, Name = "Appetizer" }
         );
 
+        var pancakes = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0001-4000-a000-000000000001"),
+            Title = "Classic Pancakes",
+            Description = "Fluffy buttermilk pancakes served with maple syrup and fresh berries.",
+            CategoryId = breakfastId,
+            DifficultyLevel = 1,
+            PrepTimeInMinutes = 20
+        };
+
+        var eggsBenedict = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0002-4000-a000-000000000002"),
+            Title = "Eggs Benedict",
+            Description = "Poached eggs on toasted muffins with hollandaise sauce and smoked salmon.",
+            CategoryId = breakfastId,
+            DifficultyLevel = 3,
+            PrepTimeInMinutes = 35
+        };
+
+        var grilledChicken = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0003-4000-a000-000000000003"),
+            Title = "Grilled Chicken",
+            Description = "Herb-marinated chicken breast grilled and served with roasted vegetables.",
+            CategoryId = mainCourseId,
+            DifficultyLevel = 2,
+            PrepTimeInMinutes = 45
+        };
+
+        var beefStew = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0004-4000-a000-000000000004"),
+            Title = "Beef Stew",
+            Description = "Slow-cooked beef with root vegetables in a rich red wine sauce.",
+            CategoryId = mainCourseId,
+            DifficultyLevel = 3,
+            PrepTimeInMinutes = 120
+        };
+
+        var mushroomRisotto = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0005-4000-a000-000000000005"),
+            Title = "Mushroom Risotto",
+            Description = "Creamy arborio rice with mixed wild mushrooms and parmesan.",
+            CategoryId = mainCourseId,
+            DifficultyLevel = 4,
+            PrepTimeInMinutes = 50
+        };
+
+        var chocolateLavaCake = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0006-4000-a000-000000000006"),
+            Title = "Chocolate Lava Cake",
+            Description = "Individual warm chocolate cakes with a molten center, served with vanilla ice cream.",
+            CategoryId = dessertId,
+            DifficultyLevel = 4,
+            PrepTimeInMinutes = 30
+        };
+
+        var lemonTart = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0007-4000-a000-000000000007"),
+            Title = "Lemon Tart",
+            Description = "Crisp shortcrust pastry filled with tangy lemon curd and topped with meringue.",
+            CategoryId = dessertId,
+            DifficultyLevel = 3,
+            PrepTimeInMinutes = 60
+        };
+
+        var bruschetta = new Recipe
+        {
+            Id = Guid.Parse("a0000001-0008-4000-a000-000000000008"),
+            Title = "Bruschetta",
+            Description = "Toasted ciabatta topped with fresh tomatoes, basil, garlic, and olive oil.",
+            CategoryId = appetizerId,
+            DifficultyLevel = 1,
+            PrepTimeInMinutes = 15
+        };
+
         modelBuilder.Entity<Recipe>().HasData(
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0001-4000-a000-000000000001"),
-                Title = "Classic Pancakes",
-                Description = "Fluffy buttermilk pancakes served with maple syrup and fresh berries.",
-                CategoryId = breakfastId,
-                DifficultyLevel = 1,
-                PrepTimeInMinutes = 20
-            },
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0002-4000-a000-000000000002"),
-                Title = "Eggs Benedict",
-                Description = "Poached eggs on toasted muffins with hollandaise sauce and smoked salmon.",
-                CategoryId = breakfastId,
-                DifficultyLevel = 3,
-                PrepTimeInMinutes = 35
-            },
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0003-4000-a000-000000000003"),
-                Title = "Grilled Chicken",
-                Description = "Herb-marinated chicken breast grilled and served with roasted vegetables.",
-                CategoryId = mainCourseId,
-                DifficultyLevel = 2,
-                PrepTimeInMinutes = 45
-            },
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0004-4000-a000-000000000004"),
-                Title = "Beef Stew",
-                Description = "Slow-cooked beef with root vegetables in a rich red wine sauce.",
-                CategoryId = mainCourseId,
-                DifficultyLevel = 3,
-                PrepTimeInMinutes = 120
-            },
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0005-4000-a000-000000000005"),
-                Title = "Mushroom Risotto",
-                Description = "Creamy arborio rice with mixed wild mushrooms and parmesan.",
-                CategoryId = mainCourseId,
-                DifficultyLevel = 4,
-                PrepTimeInMinutes = 50
-            },
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0006-4000-a000-000000000006"),
-                Title = "Chocolate Lava Cake",
-                Description = "Individual warm chocolate cakes with a molten centre, served with vanilla ice cream.",
-                CategoryId = dessertId,
-                DifficultyLevel = 4,
-                PrepTimeInMinutes = 30
-            },
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0007-4000-a000-000000000007"),
-                Title = "Lemon Tart",
-                Description = "Crisp shortcrust pastry filled with tangy lemon curd and topped with meringue.",
-                CategoryId = dessertId,
-                DifficultyLevel = 3,
-                PrepTimeInMinutes = 60
-            },
-            new Recipe
-            {
-                Id = Guid.Parse("a0000001-0008-4000-a000-000000000008"),
-                Title = "Bruschetta",
-                Description = "Toasted ciabatta topped with fresh tomatoes, basil, garlic, and olive oil.",
-                CategoryId = appetizerId,
-                DifficultyLevel = 1,
-                PrepTimeInMinutes = 15
-            }
+            pancakes, eggsBenedict, grilledChicken, beefStew,
+            mushroomRisotto, chocolateLavaCake, lemonTart, bruschetta
         );
     }
 }
