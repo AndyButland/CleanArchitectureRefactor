@@ -11,7 +11,7 @@ public static class InfrastructureServiceRegistration
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
     {
         services.AddDbContext<RecipeCatalogDbContext>(options =>
-            options.UseSqlite("Data Source=recipecatalog.db"));
+            options.UseInMemoryDatabase("RecipeCatalog"));
 
         services.AddScoped<IRecipeRepository, RecipeRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
