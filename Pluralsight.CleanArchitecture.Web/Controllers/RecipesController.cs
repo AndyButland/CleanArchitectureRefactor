@@ -77,6 +77,11 @@ public class RecipesController : Controller
             ModelState.AddModelError(nameof(viewModel.PrepTimeInMinutes), "Prep time must be greater than zero.");
         }
 
+        if (viewModel.PrepTimeInMinutes > 60 && viewModel.DifficultyLevel < 3)
+        {
+            ModelState.AddModelError(string.Empty, "Recipes over one hour must have a difficulty of at least 3.");
+        }
+
         if (!await _context.Categories.AnyAsync(c => c.Id == viewModel.CategoryId))
         {
             ModelState.AddModelError(nameof(viewModel.CategoryId), "The selected category does not exist.");
@@ -143,6 +148,11 @@ public class RecipesController : Controller
         if (viewModel.PrepTimeInMinutes <= 0)
         {
             ModelState.AddModelError(nameof(viewModel.PrepTimeInMinutes), "Prep time must be greater than zero.");
+        }
+
+        if (viewModel.PrepTimeInMinutes > 60 && viewModel.DifficultyLevel < 3)
+        {
+            ModelState.AddModelError(string.Empty, "Recipes over one hour must have a difficulty of at least 3.");
         }
 
         if (!await _context.Categories.AnyAsync(c => c.Id == viewModel.CategoryId))
