@@ -4,23 +4,23 @@
 
 ### Introduction to Clean Architecture
 
-There's a reason that many developers like working on new, greenfield projects. A new codebase is small, easy to navigate, and quick to change. But as features accumulate, effort required to make changes grows steadily, and progress slows down. New functionality takes longer to add. Bug fixes in one area introduce regressions in another. Developers are spending more time untangling code than writing it whilst stakeholders look on and wonder why "just this little update" is taking so long to deliver.
+There's a reason that many developers like working on new, greenfield projects. A new codebase is small, easy to navigate, and quick to change. But as features accumulate, the effort required to make changes grows steadily, and progress slows down. New functionality takes longer to add. Bug fixes in one area introduce regressions in another. Developers are spending more time untangling code than writing it whilst stakeholders look on and wonder why "just this little update" is taking so long to deliver.
 
 This is what can happen when architecture decisions are left to drift. Software should be *soft* — meaning easy to modify. The goal is to keep it that way: to minimize the human effort required to build and maintain a system, not just at the beginning but over its lifetime.
 
-**Clean architecture** is one proven approach to achieving this. It organizes code into concentric layers, with business rules at the center and infrastructure concerns like databases, frameworks, and file systems at the edges. The governing rule is simple: source code dependencies must point inward only. Inner layers never know about outer layers. This means you can change how data is stored, how notifications are sent, or how the UI works — without touching business logic.
+**Clean architecture** is one proven approach to achieving this. It organizes code into concentric layers, with business rules at the center and infrastructure concerns like databases, frameworks, and file systems at the edges. The golden rule is simple: dependencies point only inward. This means you can change how data is stored, how notifications are sent, or how the UI works — without touching business logic.
 
-These architectural boundaries work hand-in-hand with good design at the class and method level. The [**SOLID principles**](https://app.pluralsight.com/ilx/video-courses/csharp-solid-principles/course-overview) guide how individual components are shaped within each layer.
+These architectural boundaries work hand-in-hand with good design at the class and method level. The **SOLID principles** guide how individual components are shaped within each layer.
 
-In this lab, you will apply these ideas hands-on. You will take a working but poorly structured application and refactor it into four clearly separated layers, each with well-defined boundaries.
+In this lab, you will apply these ideas with hands-on refactoring. You will take a working but poorly structured application and modify it into four clearly separated layers, each with well-defined boundaries.
 
 ### Lab Scenario
 
-You have been brought in to improve the architecture of a Recipe Catalog application built with ASP.NET Core 10. The application works — users can browse, filter, create, edit, and delete recipes through a web interface — but all of the logic lives in a single project with "fat controllers" that directly access the database, write to the filesystem, and duplicate validation code.
+You have been brought in to improve the architecture of a Recipe Catalog application built with ASP.NET 10. The application works — users can browse, filter, create, edit, and delete recipes through a web interface — but all of the logic lives in a single project with "fat controllers" that directly access the database, write to the filesystem, and duplicate validation code.
 
 Your job is to refactor this application into a clean architecture without changing its external behavior. The user interface will continue to work identically throughout.
 
-In the project folder `Pluralsight.CleanArchitecture.Web`, there is an ASP.NET Core MVC application that you will work on to restructure into separate domain, application, infrastructure, and presentation layers.
+In the project folder `Pluralsight.CleanArchitecture.Web`, there is an ASP.NET MVC application that you will work on to restructure into separate domain, application, infrastructure, and presentation layers.
 
 ### Working with the Project
 
@@ -35,15 +35,15 @@ Click on the **Web Browser** tab and then on the **Open in new browser tab** but
 
 > Whenever you make changes to the code while working on the tasks, you need to stop and re-run the app so your changes take effect. You can do that by pressing `CTRL+C` in the terminal then running `dotnet run` again. If you don't need to see changes, you can also run `dotnet build`, just as a check that the code continues to compile.
 
-Use the application to browse the recipe list, try the category and difficulty filters, create a new recipe, edit an existing one, and delete one. Everything works just fine. It's under the covers that things can be improved. Your job in this lab is to refactor the code behind it into a clean architecture, without changing the user-facing behavior of the web application.
+Use the application to browse the recipe list, try the category and difficulty filters, create a new recipe, edit an existing one, and delete one. Everything works just fine. It's under the covers that things can be improved.
 
 ### Exploring the Code
 
 Explore the files in the `Pluralsight.CleanArchitecture.Web` folder to understand how the application is currently structured.
 
-* In the `Controllers` folder, open `RecipesController.cs`. This single controller handles all CRUD operations for recipes. Notice how many responsibilities it has: HTTP request handling, Entity Framework Core data access, business validation, file writing for notifications, and mapping to view models. All in one class, clearly violating the **Single Responsibility Principle**. Compare also the `Create` (POST) and `Edit` (POST) actions and notice the duplicated validation logic.
-* In the `Data` folder, you will find `RecipeCatalogDbContext.cs`. This is the Entity Framework Core database context. Notice that it lives directly in the Web project. We have tight coupling of the presentation layer to the data access technology.
-* In the `Models` folder, you will find `Recipe.cs` and `Category.cs`. These entity classes can be considered **anaemic**. They are passive holders of data,  with all properties freely settable, and little  behavior to protect business rules. The validation logic that should belong to the entity (like difficulty being between 1 and 5) lives in the controller instead.
+* In the `Controllers` folder, open `RecipesController.cs`. This single controller handles all CRUD operations for recipes. Notice how many responsibilities it has: HTTP request handling, Entity Framework Core data access, business validation, file writing for notifications, and mapping to view models. All in one class, clearly violating the **Single Responsibility Principle** (the "S" in SOLID). Compare also the `Create` (POST) and `Edit` (POST) actions and notice the duplicated validation logic.
+* In the `Data` folder, you will find `RecipeCatalogDbContext.cs`. This is the Entity Framework Core database context. Currently it lives directly in the Web project. We have tight coupling of the presentation layer to the data access technology.
+* In the `Models` folder, you will find `Recipe.cs` and `Category.cs`. These entity classes can be considered **anaemic**. They are passive holders of data, with all properties freely settable, and little behavior to protect business rules. The validation logic that should belong to the entity (like difficulty being between 1 and 5) lives in the controller instead.
 * In the `ViewModels` folder, there are view models used by the Razor views.
 * In the `Views/Recipes` folder, you will find the Razor views for the recipe list, create, edit, and delete pages.
 
@@ -51,9 +51,9 @@ There are other files necessary for bootstrapping the web application and render
 
 ## Step 2: Create the Domain Layer
 
-In clean architecture, the Domain layer sits at the center. It has no dependencies on any other project, framework, or library, and no direct interaction with databases, files or network services. This is where your core business logic is held, and business concepts are defined as **entities**.
+In clean architecture, the Domain layer sits at the center. It has no dependencies on any other project, framework, or library, and no direct interaction with databases, files or network services. This is where your core business logic is held, with real-world business objects and relations modelled as **entities**.
 
-In the current codebase, `Recipe` and `Category` are simple classes with public getters and setters that any code can modify freely. There is nothing stopping a caller from setting a recipe's difficulty level to 99 or its preparation time to a negative number. Currently those checks happen in the controller, but as the application grows, and other screens, channels and background services start to work with recipes, it's going to be easy to miss duplicating this validation. And if changes are needed to the business rules, easy to miss making updates too. Much better to centralize this into one place.
+In the current codebase, `Recipe` and `Category` are simple classes with public getters and setters that any code can modify freely. There is nothing stopping a caller from setting a recipe's difficulty level to 99 or its preparation time to a negative number. Currently those checks happen in the controller, but as the application grows, and other screens, channels and background services start to work with recipes, it's going to be easy to miss applying this validation. And if changes are needed to the business rules, easy to miss making updates too. Much better to centralize this into one place.
 
 In this step, you will create a dedicated Domain project and build entity classes that take ownership of their own rules. The `Recipe` entity will use private setters and a dedicated method to ensure its properties can never be set to invalid values, no matter where in the application it is used.
 
@@ -156,7 +156,7 @@ This is a meaningful shift from the "before" state. Previously, this validation 
 
 The Application layer sits between the domain and the outside world. It defines *what the application can do*, through service interfaces and their implementations, without knowing *how* things like databases or file systems work. It depends on the Domain project, but nothing else.
 
-This is where the **Dependency Inversion Principle** — one of the SOLID principles — comes in. Instead of the Application layer calling a database directly, it defines interfaces (contracts) that describe what it needs. Examples in our application are "give me all recipes" or "send a notification." The actual implementation of those contracts will live in the Infrastructure layer, which you will build in the next step.
+This is where the **Dependency Inversion Principle** (the "D" in SOLID) comes in. Instead of the Application layer calling a database directly, it defines interfaces (contracts) that describe what it needs. Examples in our application are "give me all recipes" or "send a notification." The actual implementation of those contracts will live in the Infrastructure layer, which you will build in the next step.
 
 This separation is what makes clean architecture flexible. If you later need to swap database technology, or replace file-based notifications with an email service, you change only the Infrastructure layer. The Application layer, and all of its business logic, remains untouched.
 
@@ -216,7 +216,7 @@ rules:
 
 ---
 
-Notice that these interfaces use the domain entities as their data types. The Application layer speaks in terms of the domain. Also notice that we have two focused interfaces rather than one large one. Each consumer can depend on only what it needs, which is the **Interface Segregation Principle** — the "I" in SOLID — in action.
+Notice that these interfaces use the domain entities as their data types. The Application layer speaks in terms of the domain. Also see that we have two focused interfaces rather than one large one. Each consumer can depend on only what it needs, which is the **Interface Segregation Principle** (the "I" in SOLID) in action.
 
 ### Task 3.3: Define the notification service contract
 
@@ -366,7 +366,7 @@ Notice the dependency direction: Infrastructure references Application (and tran
 
 The `RecipeCatalogDbContext` currently lives in the Web project at `Data/RecipeCatalogDbContext.cs`. It needs to move to the Infrastructure layer.
 
-Create a new file `RecipeCatalogDbContext.cs` in the `Persistence` folder of the Infrastructure project. You can use the existing file in `Pluralsight.CleanArchitecture.Web/Data/RecipeCatalogDbContext.cs` as a starting point, but you need to make several changes:
+Create a new file `RecipeCatalogDbContext.cs` in the `Persistence` folder of the Infrastructure project. You can use the existing file in `Pluralsight.CleanArchitecture.Web/Data/RecipeCatalogDbContext.cs` as a starting point, but you need to make some changes:
 
 1. Change the namespace to `Pluralsight.CleanArchitecture.Infrastructure.Persistence`.
 2. Change the `using` statement to reference `Pluralsight.CleanArchitecture.Domain.Entities` instead of `Pluralsight.CleanArchitecture.Web.Models`.
@@ -565,7 +565,9 @@ This is the composition root pattern. All the concrete wiring happens here in `P
 
 ### Task 5.3: Putting the fat controller on a diet!
 
-Open `Pluralsight.CleanArchitecture.Web/Controllers/RecipesController.cs`. The existing controller is what is sometimes called a **God class** — a single class that knows and does too much. In this task you will strip much of of that away, leaving a thin controller that delegates to the Application services.
+The existing recipes controller is what is sometimes called a **God class** — a single class that knows and does too much. In the next task you will strip much of of that away, leaving a thin controller that delegates to the Application services.
+
+Open `Pluralsight.CleanArchitecture.Web/Controllers/RecipesController.cs`.
 
 Replace the constructor so that instead of injecting `RecipeCatalogDbContext`, it injects `IRecipeService` and `ICategoryService`. Store them as private readonly fields.
 
