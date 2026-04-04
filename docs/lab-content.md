@@ -587,7 +587,7 @@ Delete the auto-generated `Class1.cs` file from the new project.
 Then add the NuGet packages that the Infrastructure layer needs:
 
 ```
-dotnet add Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj package Microsoft.EntityFrameworkCore.Sqlite
+dotnet add Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj package Microsoft.EntityFrameworkCore.InMemory
 dotnet add Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj package Microsoft.Extensions.DependencyInjection.Abstractions
 ```
 
@@ -607,9 +607,9 @@ rules:
   languages: [generic]
   severity: WARNING
 
-- id: task_4_1_efcore_sqlite_package
-  pattern-regex: <PackageReference\s+Include\s*=\s*"Microsoft\.EntityFrameworkCore\.Sqlite"
-  message: Add the `Microsoft.EntityFrameworkCore.Sqlite` NuGet package to the Infrastructure project.
+- id: task_4_1_efcore_inmemory_package
+  pattern-regex: <PackageReference\s+Include\s*=\s*"Microsoft\.EntityFrameworkCore\.InMemory"
+  message: Add the `Microsoft.EntityFrameworkCore.InMemory` NuGet package to the Infrastructure project.
   languages: [generic]
   severity: WARNING
 ```
@@ -780,7 +780,7 @@ Define a static class `InfrastructureServiceRegistration` in the `Pluralsight.Cl
 
 Inside the method, register the following:
 
-- The `RecipeCatalogDbContext` using `AddDbContext` with the SQLite connection string `"Data Source=recipecatalog.db"`.
+- The `RecipeCatalogDbContext` using `AddDbContext` with the database name `"RecipeCatalog"`.
 - `IRecipeRepository` to `RecipeRepository` as scoped.
 - `ICategoryRepository` to `CategoryRepository` as scoped.
 - `INotificationService` to `FileNotificationService` as singleton.
@@ -835,10 +835,10 @@ The views and view models remain unchanged so the user will not notice any diffe
 
 ### Task 5.1: Update project references
 
-First, remove the `Microsoft.EntityFrameworkCore.Sqlite` package from the Web project. That dependency now belongs to the Infrastructure project:
+First, remove the `Microsoft.EntityFrameworkCore.InMemory` package from the Web project. That dependency now belongs to the Infrastructure project:
 
 ```
-dotnet remove Pluralsight.CleanArchitecture.Web/Pluralsight.CleanArchitecture.Web.csproj package Microsoft.EntityFrameworkCore.Sqlite
+dotnet remove Pluralsight.CleanArchitecture.Web/Pluralsight.CleanArchitecture.Web.csproj package Microsoft.EntityFrameworkCore.InMemory
 ```
 
 Then add project references to the Application and Infrastructure projects:
@@ -886,7 +886,7 @@ Then replace the `AddDbContext` call:
 
 ```csharp
 builder.Services.AddDbContext<RecipeCatalogDbContext>(options =>
-    options.UseSqlite("Data Source=recipecatalog.db"));
+    options.UseInMemoryDatabase("RecipeCatalog"));
 ```
 
 with the two registration methods:
@@ -1076,7 +1076,7 @@ Every dependency points inward. The inner layers have no knowledge of the outer 
 
 This lab covered the foundations of clean architecture on what of course is a very simple application. There is more you can build on top of this structure as an application grows in complexity.
 
-**Testability.** One of the most significant benefits of what you have built is how much easier the code is to test. Consider what it would take to write automated test for the original `RecipesController`: you would need a real SQLite database, a real filesystem for notifications, and an HTTP context. To test `RecipeService` you can mock `IRecipeRepository`, `ICategoryRepository`, and `INotificationService`, and test the business logic in isolation. The domain is even simpler. `Recipe.UpdatePreparation()` can be tested with a plain unit test that verifies invalid values throw exceptions and valid values are assigned. Clean architecture makes testing easy by design.
+**Testability.** One of the most significant benefits of what you have built is how much easier the code is to test. Consider what it would take to write automated test for the original `RecipesController`: you would need a database, a real filesystem for notifications, and an HTTP context. To test `RecipeService` you can mock `IRecipeRepository`, `ICategoryRepository`, and `INotificationService`, and test the business logic in isolation. The domain is even simpler. `Recipe.UpdatePreparation()` can be tested with a plain unit test that verifies invalid values throw exceptions and valid values are assigned. Clean architecture makes testing easy by design.
 
 **Richer domain modeling.** The `UpdatePreparation` method was a first step toward a richer domain model. In more complex systems, domain-driven design (DDD) goes further with concepts like **value objects** (e.g., a `DifficultyLevel` type that can never hold an invalid value), **aggregates** (clusters of entities that enforce consistency boundaries), and **domain events** (e.g., a `RecipeCreatedEvent` that triggers the notification instead of the service calling it directly). These techniques keep business logic expressive and centralized as complexity grows.
 
@@ -1086,4 +1086,4 @@ This lab covered the foundations of clean architecture on what of course is a ve
 
 **Cross-cutting concerns.** As the application grows, you will want consistent behavior across all operations: global error handling that converts exceptions to appropriate HTTP responses, structured logging with a library like **Serilog**, and pipeline behaviors for concerns like caching or performance monitoring. Clean architecture gives these concerns natural places to live without polluting business logic.
 
-**Swapping infrastructure.** What would it take to swap SQLite for SQL Server? Only a change to the Infrastructure project and a connection string. The Application and Domain layers would not change at all. That is the promise of clean architecture: the database, the web framework, and the notification mechanism are all details that can be changed independently of the business rules they serve.
+**Swapping infrastructure.** What would it take to swap the in-memory database for SQL Server or PostgreSQL? Only a change to the Infrastructure project — a different EF Core provider package and a connection string. The Application and Domain layers would not change at all. That is the promise of clean architecture: the database, the web framework, and the notification mechanism are all details that can be changed independently of the business rules they serve.

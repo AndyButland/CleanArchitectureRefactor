@@ -12,7 +12,7 @@ builder.Services.AddAntiforgery(options =>
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<RecipeCatalogDbContext>(options =>
-    options.UseSqlite("Data Source=recipecatalog.db"));
+    options.UseInMemoryDatabase("RecipeCatalog"));
 
 var app = builder.Build();
 
