@@ -31,7 +31,7 @@ cd Pluralsight.CleanArchitecture.Web
 dotnet run
 ```
 
-Click on the **Web Browser** tab and then on the **Open in new browser tab** button. You will then see the web application running.
+Click on the **Web Browser** tab and browse to `http://0.0.0.0:5246`. You will see the web application running. Use the **Open in new browser tab** button to view in full-screen.
 
 > Whenever you make changes to the code while working on the tasks, you need to stop and re-run the app so your changes take effect. You can do that by pressing `CTRL+C` in the terminal then running `dotnet run` again. If you don't need to see changes, you can also run `dotnet build`, just as a check that the code continues to compile.
 
