@@ -77,10 +77,15 @@ The first command creates a class library project — not a web project — beca
 Delete the auto-generated `Class1.cs` file from the new project, and create an `Entities` folder inside `Pluralsight.CleanArchitecture.Domain`. This is where your entity classes will live.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Domain/Pluralsight.CleanArchitecture.Domain.csproj
 
 ```yaml
 rules:
+- id: task_2_1_domain_csproj
+  pattern-regex: <Project\s+Sdk\s*=\s*"Microsoft\.NET\.Sdk">
+  message: Create the Domain class library project using `dotnet new classlib`.
+  languages: [generic]
+  severity: WARNING
 ```
 
 ---
@@ -95,10 +100,21 @@ Define a `Category` class in the `Pluralsight.CleanArchitecture.Domain.Entities`
 - `Name` as `string`, initialized to `string.Empty`
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Domain/Entities/Category.cs
 
 ```yaml
 rules:
+- id: task_2_2_category_id
+  pattern-regex: public\s+Guid\s+Id\s*\{\s*get\s*;\s*set\s*;\s*\}
+  message: Add a public `Id` property of type `Guid` to the `Category` class.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_2_category_name
+  pattern-regex: public\s+string\s+Name\s*\{\s*get\s*;\s*set\s*;\s*\}\s*=\s*(string\.Empty|"");
+  message: Add a public `Name` property of type `string`, initialized to `string.Empty`.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -120,10 +136,51 @@ Define a `Recipe` class in the `Pluralsight.CleanArchitecture.Domain.Entities` n
 - `PrepTimeInMinutes` as `int`
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Domain/Entities/Recipe.cs
 
 ```yaml
 rules:
+- id: task_2_3_recipe_id
+  pattern-regex: public\s+Guid\s+Id\s*\{\s*get\s*;\s*set\s*;\s*\}
+  message: Add a public `Id` property of type `Guid` to the `Recipe` class.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_3_recipe_title
+  pattern-regex: public\s+string\s+Title\s*\{\s*get\s*;\s*set\s*;\s*\}\s*=\s*(string\.Empty|"");
+  message: Add a public `Title` property of type `string`, initialized to `string.Empty`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_3_recipe_description
+  pattern-regex: public\s+string\?\s+Description\s*\{\s*get\s*;\s*set\s*;\s*\}
+  message: Add a public `Description` property of type `string?`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_3_recipe_categoryid
+  pattern-regex: public\s+Guid\s+CategoryId\s*\{\s*get\s*;\s*set\s*;\s*\}
+  message: Add a public `CategoryId` property of type `Guid`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_3_recipe_category
+  pattern-regex: public\s+Category\s+Category\s*\{\s*get\s*;\s*set\s*;\s*\}
+  message: Add a public `Category` navigation property of type `Category`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_3_recipe_difficulty
+  pattern-regex: public\s+int\s+DifficultyLevel\s*\{\s*get\s*;
+  message: Add a public `DifficultyLevel` property of type `int`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_3_recipe_preptime
+  pattern-regex: public\s+int\s+PrepTimeInMinutes\s*\{\s*get\s*;
+  message: Add a public `PrepTimeInMinutes` property of type `int`.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -142,10 +199,45 @@ Then add a public method called `UpdatePreparation` that accepts two parameters:
 4. If all validations pass, assign both values to the `DifficultyLevel` and `PrepTimeInMinutes` properties.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Domain/Entities/Recipe.cs
 
 ```yaml
 rules:
+- id: task_2_4_difficulty_private_set
+  pattern-regex: public\s+int\s+DifficultyLevel\s*\{\s*get\s*;\s*private\s+set\s*;\s*\}
+  message: Change `DifficultyLevel` to use `private set`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_4_preptime_private_set
+  pattern-regex: public\s+int\s+PrepTimeInMinutes\s*\{\s*get\s*;\s*private\s+set\s*;\s*\}
+  message: Change `PrepTimeInMinutes` to use `private set`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_4_update_preparation_method
+  pattern-regex: public\s+void\s+UpdatePreparation\s*\(\s*int\s+difficultyLevel\s*,\s*int\s+prepTimeInMinutes\s*\)
+  message: Add a public `UpdatePreparation` method that accepts `int difficultyLevel` and `int prepTimeInMinutes`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_4_difficulty_validation
+  pattern-regex: difficultyLevel\s*<\s*1\s*\|\|\s*difficultyLevel\s*>\s*5
+  message: Validate that `difficultyLevel` is between 1 and 5.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_4_preptime_validation
+  pattern-regex: prepTimeInMinutes\s*<=\s*0
+  message: Validate that `prepTimeInMinutes` is greater than zero.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_2_4_cross_validation
+  pattern-regex: prepTimeInMinutes\s*>\s*60\s*&&\s*difficultyLevel\s*<\s*3
+  message: Validate that recipes over one hour must have a difficulty of at least 3.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -178,10 +270,15 @@ Then create two folders inside `Pluralsight.CleanArchitecture.Application`:
 - `Services` — for the application service interfaces and their implementations.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Application/Pluralsight.CleanArchitecture.Application.csproj
 
 ```yaml
 rules:
+- id: task_3_1_application_csproj
+  pattern-regex: <ProjectReference\s+Include=.*CleanArchitecture\.Domain.*\.csproj
+  message: Add a project reference from the Application project to the Domain project.
+  languages: [generic]
+  severity: WARNING
 ```
 
 ---
@@ -208,10 +305,62 @@ Then create `ICategoryRepository.cs` in the same folder with:
 - `Task<Category?> GetByIdAsync(Guid id)` — returns a single category or null
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Application/Contracts/IRecipeRepository.cs
 
 ```yaml
 rules:
+- id: task_3_2_ireciperepository_interface
+  pattern-regex: public\s+interface\s+IRecipeRepository
+  message: Define a public interface named `IRecipeRepository`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_2_ireciperepository_getall
+  pattern-regex: Task<List<Recipe>>\s+GetAllAsync
+  message: Add a `GetAllAsync` method returning `Task<List<Recipe>>` to `IRecipeRepository`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_2_ireciperepository_getbyid
+  pattern-regex: Task<Recipe\?>\s+GetByIdAsync
+  message: Add a `GetByIdAsync` method returning `Task<Recipe?>` to `IRecipeRepository`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_2_ireciperepository_add
+  pattern-regex: Task<Recipe>\s+AddAsync
+  message: Add an `AddAsync` method returning `Task<Recipe>` to `IRecipeRepository`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_2_ireciperepository_update
+  pattern-regex: Task\s+UpdateAsync
+  message: Add an `UpdateAsync` method to `IRecipeRepository`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_2_ireciperepository_delete
+  pattern-regex: Task\s+DeleteAsync
+  message: Add a `DeleteAsync` method to `IRecipeRepository`.
+  languages: [C#]
+  severity: WARNING
+```
+
+Check: Pluralsight.CleanArchitecture.Application/Contracts/ICategoryRepository.cs
+
+```yaml
+rules:
+- id: task_3_2_icategoryrepository_interface
+  pattern-regex: public\s+interface\s+ICategoryRepository
+  message: Define a public interface named `ICategoryRepository`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_2_icategoryrepository_getall
+  pattern-regex: Task<List<Category>>\s+GetAllAsync
+  message: Add a `GetAllAsync` method returning `Task<List<Category>>` to `ICategoryRepository`.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -227,10 +376,21 @@ Create a new file `INotificationService.cs` inside the `Contracts` folder. Defin
 - `Task SendNotificationAsync(string message)`
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Application/Contracts/INotificationService.cs
 
 ```yaml
 rules:
+- id: task_3_3_inotificationservice_interface
+  pattern-regex: public\s+interface\s+INotificationService
+  message: Define a public interface named `INotificationService`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_3_sendnotification_method
+  pattern-regex: Task\s+SendNotificationAsync\s*\(\s*string\s+message\s*\)
+  message: Add a `SendNotificationAsync` method that accepts a `string message` parameter.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -262,10 +422,56 @@ Implement the methods as follows:
 - **DeleteAsync**: delegate to `_recipeRepository.DeleteAsync`.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Application/Services/IRecipeService.cs
 
 ```yaml
 rules:
+- id: task_3_4_irecipeservice_interface
+  pattern-regex: public\s+interface\s+IRecipeService
+  message: Define a public interface named `IRecipeService`.
+  languages: [C#]
+  severity: WARNING
+```
+
+Check: Pluralsight.CleanArchitecture.Application/Services/RecipeService.cs
+
+```yaml
+rules:
+- id: task_3_4_recipeservice_class
+  pattern-regex: public\s+class\s+RecipeService\s*:\s*IRecipeService
+  message: Create a `RecipeService` class that implements `IRecipeService`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_4_recipeservice_repo_dependency
+  pattern-regex: IRecipeRepository\s+\w+
+  message: Inject `IRecipeRepository` into `RecipeService`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_4_recipeservice_category_dependency
+  pattern-regex: ICategoryRepository\s+\w+
+  message: Inject `ICategoryRepository` into `RecipeService`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_4_recipeservice_notification_dependency
+  pattern-regex: INotificationService\s+\w+
+  message: Inject `INotificationService` into `RecipeService`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_4_recipeservice_update_preparation
+  pattern-regex: \.UpdatePreparation\s*\(
+  message: Call `UpdatePreparation` on the recipe entity in `CreateAsync` and `UpdateAsync`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_4_recipeservice_send_notification
+  pattern-regex: SendNotificationAsync\s*\(
+  message: Call `SendNotificationAsync` when creating a recipe.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -281,10 +487,26 @@ Create `ICategoryService.cs` inside the `Services` folder. You will need a `usin
 Then create `CategoryService.cs` in the same folder. You will need `using` statements for `Pluralsight.CleanArchitecture.Application.Contracts` and `Pluralsight.CleanArchitecture.Domain.Entities`. It should implement `ICategoryService`, accept `ICategoryRepository` as a constructor parameter, and delegate `GetAllAsync` to the repository.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Application/Services/ICategoryService.cs
 
 ```yaml
 rules:
+- id: task_3_5_icategoryservice_interface
+  pattern-regex: public\s+interface\s+ICategoryService
+  message: Define a public interface named `ICategoryService`.
+  languages: [C#]
+  severity: WARNING
+```
+
+Check: Pluralsight.CleanArchitecture.Application/Services/CategoryService.cs
+
+```yaml
+rules:
+- id: task_3_5_categoryservice_class
+  pattern-regex: public\s+class\s+CategoryService\s*:\s*ICategoryService
+  message: Create a `CategoryService` class that implements `ICategoryService`.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -311,10 +533,33 @@ dotnet add Pluralsight.CleanArchitecture.Application/Pluralsight.CleanArchitectu
 ```
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Application/ApplicationServiceRegistration.cs
 
 ```yaml
 rules:
+- id: task_3_6_application_registration_class
+  pattern-regex: public\s+static\s+class\s+ApplicationServiceRegistration
+  message: Create a static class named `ApplicationServiceRegistration`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_6_add_application_services_method
+  pattern-regex: public\s+static\s+IServiceCollection\s+AddApplicationServices\s*\(\s*this\s+IServiceCollection
+  message: Add a `AddApplicationServices` extension method on `IServiceCollection`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_6_register_recipe_service
+  pattern-regex: AddScoped<IRecipeService\s*,\s*RecipeService>
+  message: Register `IRecipeService` to `RecipeService` as scoped.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_3_6_register_category_service
+  pattern-regex: AddScoped<ICategoryService\s*,\s*CategoryService>
+  message: Register `ICategoryService` to `CategoryService` as scoped.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -352,10 +597,21 @@ Finally, create two folders inside the Infrastructure project:
 - `Notifications` — for the notification service implementation.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj
 
 ```yaml
 rules:
+- id: task_4_1_infrastructure_ref_application
+  pattern-regex: <ProjectReference\s+Include=.*CleanArchitecture\.Application.*\.csproj
+  message: Add a project reference from the Infrastructure project to the Application project.
+  languages: [generic]
+  severity: WARNING
+
+- id: task_4_1_efcore_sqlite_package
+  pattern-regex: <PackageReference\s+Include\s*=\s*"Microsoft\.EntityFrameworkCore\.Sqlite"
+  message: Add the `Microsoft.EntityFrameworkCore.Sqlite` NuGet package to the Infrastructure project.
+  languages: [generic]
+  severity: WARNING
 ```
 
 ---
@@ -401,10 +657,27 @@ pancakes.UpdatePreparation(1, 20);
 Apply the same change to all eight recipe variables, using the original difficulty and prep time values. The `Category` seed data and the `HasData` calls do not need to change.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Infrastructure/Persistence/RecipeCatalogDbContext.cs
 
 ```yaml
 rules:
+- id: task_4_2_dbcontext_namespace
+  pattern-regex: namespace\s+Pluralsight\.CleanArchitecture\.Infrastructure\.Persistence
+  message: Change the namespace to `Pluralsight.CleanArchitecture.Infrastructure.Persistence`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_2_using_domain_entities
+  pattern-regex: using\s+Pluralsight\.CleanArchitecture\.Domain\.Entities
+  message: Add a `using` statement for `Pluralsight.CleanArchitecture.Domain.Entities`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_2_seed_update_preparation
+  pattern-regex: \.UpdatePreparation\s*\(
+  message: Call `UpdatePreparation` on each recipe in the seed data to set difficulty and prep time.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -431,10 +704,32 @@ Then create `CategoryRepository.cs` in the same folder. It should implement `ICa
 Both classes will need `using` statements for `Microsoft.EntityFrameworkCore`, `Pluralsight.CleanArchitecture.Application.Contracts`, and `Pluralsight.CleanArchitecture.Domain.Entities`.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Infrastructure/Persistence/RecipeRepository.cs
 
 ```yaml
 rules:
+- id: task_4_3_recipe_repository_class
+  pattern-regex: public\s+class\s+RecipeRepository\s*:\s*IRecipeRepository
+  message: Create a `RecipeRepository` class that implements `IRecipeRepository`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_3_recipe_repository_include_category
+  pattern-regex: \.Include\s*\(\s*r\s*=>\s*r\.Category\s*\)
+  message: Use `.Include(r => r.Category)` to eager-load the category.
+  languages: [C#]
+  severity: WARNING
+```
+
+Check: Pluralsight.CleanArchitecture.Infrastructure/Persistence/CategoryRepository.cs
+
+```yaml
+rules:
+- id: task_4_3_category_repository_class
+  pattern-regex: public\s+class\s+CategoryRepository\s*:\s*ICategoryRepository
+  message: Create a `CategoryRepository` class that implements `ICategoryRepository`.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -448,10 +743,21 @@ Create `FileNotificationService.cs` in the `Notifications` folder of the Infrast
 Implement the `SendNotificationAsync` method so that it writes a timestamped message to a file at `notifications/recipe-notifications.txt`. You can refer to the `File.AppendAllTextAsync` call in the existing `RecipesController.Create` action for the approach. Format each line as `[{timestamp}] {message}` followed by a newline, using `DateTime.UtcNow` formatted with the round-trip specifier (`"O"`).
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Infrastructure/Notifications/FileNotificationService.cs
 
 ```yaml
 rules:
+- id: task_4_4_filenotificationservice_class
+  pattern-regex: public\s+class\s+FileNotificationService\s*:\s*INotificationService
+  message: Create a `FileNotificationService` class that implements `INotificationService`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_4_append_to_file
+  pattern-regex: File\.AppendAllTextAsync
+  message: Use `File.AppendAllTextAsync` to write the notification to a file.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -482,10 +788,39 @@ Inside the method, register the following:
 Return the `services` parameter to allow method chaining.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Infrastructure/InfrastructureServiceRegistration.cs
 
 ```yaml
 rules:
+- id: task_4_5_infrastructure_registration_class
+  pattern-regex: public\s+static\s+class\s+InfrastructureServiceRegistration
+  message: Create a static class named `InfrastructureServiceRegistration`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_5_add_infrastructure_services_method
+  pattern-regex: public\s+static\s+IServiceCollection\s+AddInfrastructureServices\s*\(\s*this\s+IServiceCollection
+  message: Add an `AddInfrastructureServices` extension method on `IServiceCollection`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_5_register_dbcontext
+  pattern-regex: AddDbContext<RecipeCatalogDbContext>
+  message: Register `RecipeCatalogDbContext` using `AddDbContext`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_5_register_recipe_repository
+  pattern-regex: AddScoped<IRecipeRepository\s*,\s*RecipeRepository>
+  message: Register `IRecipeRepository` to `RecipeRepository` as scoped.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_4_5_register_notification_service
+  pattern-regex: AddSingleton<INotificationService\s*,\s*FileNotificationService>
+  message: Register `INotificationService` to `FileNotificationService` as singleton.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -514,10 +849,21 @@ dotnet add Pluralsight.CleanArchitecture.Web/Pluralsight.CleanArchitecture.Web.c
 ```
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Web/Pluralsight.CleanArchitecture.Web.csproj
 
 ```yaml
 rules:
+- id: task_5_1_web_ref_application
+  pattern-regex: <ProjectReference\s+Include=.*CleanArchitecture\.Application.*\.csproj
+  message: Add a project reference from the Web project to the Application project.
+  languages: [generic]
+  severity: WARNING
+
+- id: task_5_1_web_ref_infrastructure
+  pattern-regex: <ProjectReference\s+Include=.*CleanArchitecture\.Infrastructure.*\.csproj
+  message: Add a project reference from the Web project to the Infrastructure project.
+  languages: [generic]
+  severity: WARNING
 ```
 
 ---
@@ -553,10 +899,21 @@ builder.Services.AddInfrastructureServices();
 The `EnsureCreated` block that creates the database still needs to reference `RecipeCatalogDbContext` — that is why the `using` for `Pluralsight.CleanArchitecture.Infrastructure.Persistence` is needed. Everything else in `Program.cs` stays the same.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Web/Program.cs
 
 ```yaml
 rules:
+- id: task_5_2_add_application_services_call
+  pattern-regex: \.AddApplicationServices\s*\(\s*\)
+  message: Call `AddApplicationServices()` in `Program.cs`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_5_2_add_infrastructure_services_call
+  pattern-regex: \.AddInfrastructureServices\s*\(\s*\)
+  message: Call `AddInfrastructureServices()` in `Program.cs`.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -588,10 +945,51 @@ You can also extract a private helper method `GetCategorySelectList()` that call
 Remove all direct `_context` usage, all inline validation logic, and all `File.AppendAllTextAsync` calls. The controller should have no `using` for `Microsoft.EntityFrameworkCore` and no reference to `RecipeCatalogDbContext`.
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Web/Controllers/RecipesController.cs
 
 ```yaml
 rules:
+- id: task_5_3_inject_recipe_service
+  pattern-regex: IRecipeService\s+\w+
+  message: Inject `IRecipeService` into the controller.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_5_3_inject_category_service
+  pattern-regex: ICategoryService\s+\w+
+  message: Inject `ICategoryService` into the controller.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_5_3_using_application_services
+  pattern-regex: using\s+Pluralsight\.CleanArchitecture\.Application\.Services
+  message: Add a `using` statement for `Pluralsight.CleanArchitecture.Application.Services`.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_5_3_call_create_async
+  pattern-regex: _recipeService\.CreateAsync\s*\(
+  message: Call `_recipeService.CreateAsync` in the Create POST action.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_5_3_call_update_async
+  pattern-regex: _recipeService\.UpdateAsync\s*\(
+  message: Call `_recipeService.UpdateAsync` in the Edit POST action.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_5_3_call_delete_async
+  pattern-regex: _recipeService\.DeleteAsync\s*\(
+  message: Call `_recipeService.DeleteAsync` in the Delete POST action.
+  languages: [C#]
+  severity: WARNING
+
+- id: task_5_3_catch_argument_exception
+  pattern-regex: catch\s*\(\s*ArgumentException
+  message: Catch `ArgumentException` from service calls and add the error to `ModelState`.
+  languages: [C#]
+  severity: WARNING
 ```
 
 ---
@@ -625,10 +1023,15 @@ dotnet build
 ```
 
 ---
-Check:
+Check: Pluralsight.CleanArchitecture.Web/Views/_ViewImports.cshtml
 
 ```yaml
 rules:
+- id: task_5_4_viewimports_no_models
+  pattern-regex: "@using\\s+Pluralsight\\.CleanArchitecture\\.Web\\.ViewModels"
+  message: Ensure `_ViewImports.cshtml` imports `Pluralsight.CleanArchitecture.Web.ViewModels`.
+  languages: [generic]
+  severity: WARNING
 ```
 
 ---
