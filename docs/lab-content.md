@@ -42,7 +42,7 @@ Use the application to browse the recipe list, try the category and difficulty f
 Explore the files in the `Pluralsight.CleanArchitecture.Web` folder to understand how the application is currently structured.
 
 * In the `Controllers` folder, open `RecipesController.cs`. This single controller handles all CRUD operations for recipes. Notice how many responsibilities it has: HTTP request handling, Entity Framework Core data access, business validation, file writing for notifications, and mapping to view models. All in one class, clearly violating the **Single Responsibility Principle** (the "S" in SOLID). Compare also the `Create` (POST) and `Edit` (POST) actions and notice the duplicated validation logic.
-* In the `Data` folder, you will find `RecipeCatalogDbContext.cs`. This is the Entity Framework Core database context. Currently it lives directly in the Web project. We have tight coupling of the presentation layer to the data access technology.
+* In the `Data` folder, you will find `RecipeCatalogDbContext.cs`. This is the Entity Framework Core database context. Currently it lives directly in the Web project. There is tight coupling of the presentation layer to the data access technology.
 * In the `Models` folder, you will find `Recipe.cs` and `Category.cs`. These entity classes can be considered **anaemic**. They are passive holders of data, with all properties freely settable, and little behavior to protect business rules. The validation logic that should belong to the entity (like difficulty being between 1 and 5) lives in the controller instead.
 * In the `ViewModels` folder, there are view models used by the Razor views.
 * In the `Views/Recipes` folder, you will find the Razor views for the recipe list, create, edit, and delete pages.
@@ -74,7 +74,7 @@ dotnet sln Pluralsight.CleanArchitecture.slnx add Pluralsight.CleanArchitecture.
 
 The first command creates a class library project — not a web project — because the Domain layer has no need for ASP.NET. The second adds it to the solution file.
 
-Delete the auto-generated `Class1.cs` file from the new project, and create an `Entities` folder inside `Pluralsight.CleanArchitecture.Domain`. This is where your entity classes will live.
+You can delete the auto-generated `Class1.cs` file from the new project.
 
 ---
 Check: Pluralsight.CleanArchitecture.Domain/Pluralsight.CleanArchitecture.Domain.csproj
@@ -92,7 +92,9 @@ rules:
 
 ### Task 2.2: Create the Category entity
 
-Create a new file `Category.cs` inside the `Entities` folder of the Domain project.
+Create an `Entities` folder inside `Pluralsight.CleanArchitecture.Domain`. This folder will contain your entity classes.
+
+Create a new file `Category.cs` inside the `Entities` folder.
 
 Define a `Category` class in the `Pluralsight.CleanArchitecture.Domain.Entities` namespace with two public properties:
 
@@ -262,12 +264,7 @@ dotnet sln Pluralsight.CleanArchitecture.slnx add Pluralsight.CleanArchitecture.
 dotnet add Pluralsight.CleanArchitecture.Application/Pluralsight.CleanArchitecture.Application.csproj reference Pluralsight.CleanArchitecture.Domain/Pluralsight.CleanArchitecture.Domain.csproj
 ```
 
-Delete the auto-generated `Class1.cs` file from the new project.
-
-Then create two folders inside `Pluralsight.CleanArchitecture.Application`:
-
-- `Contracts` — for the interfaces that define what the application needs from external systems.
-- `Services` — for the application service interfaces and their implementations.
+You can delete the auto-generated `Class1.cs` file from the new project.
 
 ---
 Check: Pluralsight.CleanArchitecture.Application/Pluralsight.CleanArchitecture.Application.csproj
@@ -285,9 +282,11 @@ rules:
 
 The project reference to Domain means the Application layer can use the `Recipe` and `Category` entities. But notice the direction: Application depends on Domain, not the other way around. Domain remains completely independent.
 
-### Task 3.2: Define the repository contracts
-
 Repository contracts define how the Application layer expects to interact with data storage, without specifying the technology behind it.
+
+### Task 3.2a: Define the recipe repository contract
+
+Create a folder inside `Pluralsight.CleanArchitecture.Application` called `Contracts`. This will contain the interfaces that define what the application needs from external systems.
 
 Create a new file `IRecipeRepository.cs` inside the `Contracts` folder. Define an interface in the `Pluralsight.CleanArchitecture.Application.Contracts` namespace with the following methods:
 
@@ -299,64 +298,71 @@ Create a new file `IRecipeRepository.cs` inside the `Contracts` folder. Define a
 
 You will need a `using` statement for `Pluralsight.CleanArchitecture.Domain.Entities`.
 
-Then create `ICategoryRepository.cs` in the same folder with:
-
-- `Task<List<Category>> GetAllAsync()` — returns all categories
-- `Task<Category?> GetByIdAsync(Guid id)` — returns a single category or null
-
 ---
 Check: Pluralsight.CleanArchitecture.Application/Contracts/IRecipeRepository.cs
 
 ```yaml
 rules:
-- id: task_3_2_ireciperepository_interface
+- id: task_3_2a_ireciperepository_interface
   pattern-regex: public\s+interface\s+IRecipeRepository
   message: Define a public interface named `IRecipeRepository`.
   languages: [C#]
   severity: WARNING
 
-- id: task_3_2_ireciperepository_getall
+- id: task_3_2a_ireciperepository_getall
   pattern-regex: Task<List<Recipe>>\s+GetAllAsync
   message: Add a `GetAllAsync` method returning `Task<List<Recipe>>` to `IRecipeRepository`.
   languages: [C#]
   severity: WARNING
 
-- id: task_3_2_ireciperepository_getbyid
+- id: task_3_2a_ireciperepository_getbyid
   pattern-regex: Task<Recipe\?>\s+GetByIdAsync
   message: Add a `GetByIdAsync` method returning `Task<Recipe?>` to `IRecipeRepository`.
   languages: [C#]
   severity: WARNING
 
-- id: task_3_2_ireciperepository_add
+- id: task_3_2a_ireciperepository_add
   pattern-regex: Task<Recipe>\s+AddAsync
   message: Add an `AddAsync` method returning `Task<Recipe>` to `IRecipeRepository`.
   languages: [C#]
   severity: WARNING
 
-- id: task_3_2_ireciperepository_update
+- id: task_3_2a_ireciperepository_update
   pattern-regex: Task\s+UpdateAsync
   message: Add an `UpdateAsync` method to `IRecipeRepository`.
   languages: [C#]
   severity: WARNING
 
-- id: task_3_2_ireciperepository_delete
+- id: task_3_2a_ireciperepository_delete
   pattern-regex: Task\s+DeleteAsync
   message: Add a `DeleteAsync` method to `IRecipeRepository`.
   languages: [C#]
   severity: WARNING
 ```
 
+---
+
+### Task 3.2b: Define the category repository contract
+
+Create `ICategoryRepository.cs` in the `Contracts` folder. Define an interface in the `Pluralsight.CleanArchitecture.Application.Contracts` namespace with the following methods:
+
+- `Task<List<Category>> GetAllAsync()` — returns all categories
+- `Task<Category?> GetByIdAsync(Guid id)` — returns a single category or null
+
+You will need a `using` statement for `Pluralsight.CleanArchitecture.Domain.Entities`.
+
+---
 Check: Pluralsight.CleanArchitecture.Application/Contracts/ICategoryRepository.cs
 
 ```yaml
 rules:
-- id: task_3_2_icategoryrepository_interface
+- id: task_3_2b_icategoryrepository_interface
   pattern-regex: public\s+interface\s+ICategoryRepository
   message: Define a public interface named `ICategoryRepository`.
   languages: [C#]
   severity: WARNING
 
-- id: task_3_2_icategoryrepository_getall
+- id: task_3_2b_icategoryrepository_getall
   pattern-regex: Task<List<Category>>\s+GetAllAsync
   message: Add a `GetAllAsync` method returning `Task<List<Category>>` to `ICategoryRepository`.
   languages: [C#]
@@ -365,7 +371,7 @@ rules:
 
 ---
 
-Notice that these interfaces use the domain entities as their data types. The Application layer speaks in terms of the domain. Also see that we have two focused interfaces rather than one large one. Each consumer can depend on only what it needs, which is the **Interface Segregation Principle** (the "I" in SOLID) in action.
+Notice that these interfaces use the domain entities as their data types. The Application layer speaks in terms of the domain. Also see that you have two focused interfaces rather than one large one. Each consumer can depend on only what it needs, which is the **Interface Segregation Principle** (the "I" in SOLID) in action.
 
 ### Task 3.3: Define the notification service contract
 
@@ -401,7 +407,9 @@ Notice that this is a deliberately simple interface. The Application layer only 
 
 The Application layer isn't only entities and interfaces though. Application services are also created to orchestrate the business logic. They coordinate between repositories, domain entities, and other services to carry out use cases.
 
-### Task 3.4: Create the recipe service interface and implementation
+### Task 3.4a: Create the recipe service interface
+
+Create a folder inside `Pluralsight.CleanArchitecture.Application` called `Services`. This will contain the  application service interfaces and their implementations.
 
 Create a new file `IRecipeService.cs` inside the `Services` folder. You will need a `using` statement for `Pluralsight.CleanArchitecture.Domain.Entities`. Define an interface in the `Pluralsight.CleanArchitecture.Application.Services` namespace with the following methods:
 
@@ -410,16 +418,6 @@ Create a new file `IRecipeService.cs` inside the `Services` folder. You will nee
 - `Task<Guid> CreateAsync(string title, string? description, Guid categoryId, int difficultyLevel, int prepTimeInMinutes)`
 - `Task UpdateAsync(Guid id, string title, string? description, Guid categoryId, int difficultyLevel, int prepTimeInMinutes)`
 - `Task DeleteAsync(Guid id)`
-
-Then create `RecipeService.cs` in the same folder. You will need `using` statements for `Pluralsight.CleanArchitecture.Application.Contracts` and `Pluralsight.CleanArchitecture.Domain.Entities`. This class should implement `IRecipeService` and accept three constructor parameters: `IRecipeRepository`, `ICategoryRepository`, and `INotificationService`. Store them as private readonly fields.
-
-Implement the methods as follows:
-
-- **GetAllAsync**: delegate to `_recipeRepository.GetAllAsync`, passing through the filter parameters.
-- **GetByIdAsync**: delegate to `_recipeRepository.GetByIdAsync`.
-- **CreateAsync**: look up the category using `_categoryRepository.GetByIdAsync`. If the category is null, throw an `ArgumentException` with the message `"The selected category does not exist."`. Otherwise, create a new `Recipe` with a new `Guid`, the provided `title`, `description`, and `categoryId`. Call `recipe.UpdatePreparation(difficultyLevel, prepTimeInMinutes)` to set and validate the preparation fields. Then call `_recipeRepository.AddAsync` to persist it, and `_notificationService.SendNotificationAsync` with a message like `$"New recipe created: {recipe.Title} (ID: {recipe.Id})"`. Return the recipe's `Id`.
-- **UpdateAsync**: load the recipe using `_recipeRepository.GetByIdAsync`. If null, throw an `ArgumentException` with `"Recipe not found."`. Validate the category the same way as in `CreateAsync`. Update the recipe's `Title`, `Description`, and `CategoryId` properties directly, then call `recipe.UpdatePreparation(difficultyLevel, prepTimeInMinutes)`. Finally call `_recipeRepository.UpdateAsync`.
-- **DeleteAsync**: delegate to `_recipeRepository.DeleteAsync`.
 
 ---
 Check: Pluralsight.CleanArchitecture.Application/Services/IRecipeService.cs
@@ -432,6 +430,73 @@ rules:
   languages: [C#]
   severity: WARNING
 ```
+
+### Task 3.4b: Create the recipe service implementation
+
+Create `RecipeService.cs` in the `Services` folder. You will need `using` statements for `Pluralsight.CleanArchitecture.Application.Contracts` and `Pluralsight.CleanArchitecture.Domain.Entities`. This class should implement `IRecipeService` and accept three constructor parameters: `IRecipeRepository`, `ICategoryRepository`, and `INotificationService`. Store them as private readonly fields.
+
+Implement the methods as follows:
+
+- **GetAllAsync**: delegate to `_recipeRepository.GetAllAsync`, passing through the filter parameters.
+- **GetByIdAsync**: delegate to `_recipeRepository.GetByIdAsync`.
+- **CreateAsync**: look up the category using `_categoryRepository.GetByIdAsync`. If the category is null, throw an `ArgumentException` with the message `"The selected category does not exist."`. Otherwise, create a new `Recipe` with a new `Guid`, the provided `title`, `description`, and `categoryId`. Call `recipe.UpdatePreparation(difficultyLevel, prepTimeInMinutes)` to set and validate the preparation fields. Then call `_recipeRepository.AddAsync` to persist it, and `_notificationService.SendNotificationAsync` with a message like `$"New recipe created: {recipe.Title} (ID: {recipe.Id})"`. Return the recipe's `Id`.
+- **UpdateAsync**: load the recipe using `_recipeRepository.GetByIdAsync`. If null, throw an `ArgumentException` with `"Recipe not found."`. Validate the category the same way as in `CreateAsync`. Update the recipe's `Title`, `Description`, and `CategoryId` properties directly, then call `recipe.UpdatePreparation(difficultyLevel, prepTimeInMinutes)`. Finally call `_recipeRepository.UpdateAsync`.
+- **DeleteAsync**: delegate to `_recipeRepository.DeleteAsync`.
+
+You can use the following skeleton code to get you started:
+
+```csharp
+using Pluralsight.CleanArchitecture.Application.Contracts;
+using Pluralsight.CleanArchitecture.Domain.Entities;
+
+namespace Pluralsight.CleanArchitecture.Application.Services;
+
+public class RecipeService : IRecipeService
+{
+    private readonly IRecipeRepository _recipeRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly INotificationService _notificationService;
+
+    public RecipeService(
+        IRecipeRepository recipeRepository,
+        ICategoryRepository categoryRepository,
+        INotificationService notificationService)
+    {
+        _recipeRepository = recipeRepository;
+        _categoryRepository = categoryRepository;
+        _notificationService = notificationService;
+    }
+
+    public async Task<List<Recipe>> GetAllAsync(Guid? categoryId = null, int? difficulty = null)
+    {
+        // TODO: Implement GetAllAsync.
+    }
+
+    public async Task<Recipe?> GetByIdAsync(Guid id)
+    {
+        // TODO: Implement GetByAsync.
+    }
+
+    public async Task<Guid> CreateAsync(string title, string? description, Guid categoryId,
+        int difficultyLevel, int prepTimeInMinutes)
+    {
+        // TODO: Implement CreateAsync.
+    }
+
+    public async Task UpdateAsync(Guid id, string title, string? description, Guid categoryId,
+        int difficultyLevel, int prepTimeInMinutes)
+    {
+        // TODO: Implement UpdateAsync.
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        // TODO: Implement DeleteAsync.
+    }
+}
+```
+
+---
 
 Check: Pluralsight.CleanArchitecture.Application/Services/RecipeService.cs
 
@@ -478,31 +543,36 @@ rules:
 
 Compare this to the "before" state. The `Create` and `Edit` actions in the controller both contained the same validation checks and data access logic. Now the service handles it once, and both the `CreateAsync` and `UpdateAsync` methods use `recipe.UpdatePreparation()` to enforce the business rules. The duplication is gone.
 
-### Task 3.5: Create the category service interface and implementation
+### Task 3.5a: Create the category service interface
 
 Create `ICategoryService.cs` inside the `Services` folder. You will need a `using` statement for `Pluralsight.CleanArchitecture.Domain.Entities`. Define an interface with a single method:
 
 - `Task<List<Category>> GetAllAsync()`
-
-Then create `CategoryService.cs` in the same folder. You will need `using` statements for `Pluralsight.CleanArchitecture.Application.Contracts` and `Pluralsight.CleanArchitecture.Domain.Entities`. It should implement `ICategoryService`, accept `ICategoryRepository` as a constructor parameter, and delegate `GetAllAsync` to the repository.
 
 ---
 Check: Pluralsight.CleanArchitecture.Application/Services/ICategoryService.cs
 
 ```yaml
 rules:
-- id: task_3_5_icategoryservice_interface
+- id: task_3_5a_icategoryservice_interface
   pattern-regex: public\s+interface\s+ICategoryService
   message: Define a public interface named `ICategoryService`.
   languages: [C#]
   severity: WARNING
 ```
 
+---
+
+### Task 3.5b: Create the category service implementation
+
+Create `CategoryService.cs` in the `Services` folder. You will need `using` statements for `Pluralsight.CleanArchitecture.Application.Contracts` and `Pluralsight.CleanArchitecture.Domain.Entities`. It should implement `ICategoryService`, accept `ICategoryRepository` as a constructor parameter, and delegate `GetAllAsync` to the repository.
+
+---
 Check: Pluralsight.CleanArchitecture.Application/Services/CategoryService.cs
 
 ```yaml
 rules:
-- id: task_3_5_categoryservice_class
+- id: task_3_5b_categoryservice_class
   pattern-regex: public\s+class\s+CategoryService\s*:\s*ICategoryService
   message: Create a `CategoryService` class that implements `ICategoryService`.
   languages: [C#]
@@ -582,7 +652,7 @@ dotnet sln Pluralsight.CleanArchitecture.slnx add Pluralsight.CleanArchitecture.
 dotnet add Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj reference Pluralsight.CleanArchitecture.Application/Pluralsight.CleanArchitecture.Application.csproj
 ```
 
-Delete the auto-generated `Class1.cs` file from the new project.
+You can delete the auto-generated `Class1.cs` file from the new project.
 
 Then add the NuGet packages that the Infrastructure layer needs:
 
@@ -590,11 +660,6 @@ Then add the NuGet packages that the Infrastructure layer needs:
 dotnet add Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj package Microsoft.EntityFrameworkCore.InMemory
 dotnet add Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj package Microsoft.Extensions.DependencyInjection.Abstractions
 ```
-
-Finally, create two folders inside the Infrastructure project:
-
-- `Persistence` — for the database context and repository classes.
-- `Notifications` — for the notification service implementation.
 
 ---
 Check: Pluralsight.CleanArchitecture.Infrastructure/Pluralsight.CleanArchitecture.Infrastructure.csproj
@@ -622,7 +687,9 @@ Notice the dependency direction: Infrastructure references Application (and tran
 
 The `RecipeCatalogDbContext` currently lives in the Web project at `Data/RecipeCatalogDbContext.cs`. It needs to move to the Infrastructure layer.
 
-Create a new file `RecipeCatalogDbContext.cs` in the `Persistence` folder of the Infrastructure project. You can use the existing file in `Pluralsight.CleanArchitecture.Web/Data/RecipeCatalogDbContext.cs` as a starting point, but you need to make some changes:
+Create a folder inside `Pluralsight.CleanArchitecture.Infrastructure` called `Persistence`. This will contain the database context and repository classes.
+
+Create a new file `RecipeCatalogDbContext.cs` in the `Persistence` folder. You can use the existing file in `Pluralsight.CleanArchitecture.Web/Data/RecipeCatalogDbContext.cs` as a starting point, but you need to make some changes:
 
 1. Change the namespace to `Pluralsight.CleanArchitecture.Infrastructure.Persistence`.
 2. Change the `using` statement to reference `Pluralsight.CleanArchitecture.Domain.Entities` instead of `Pluralsight.CleanArchitecture.Web.Models`.
@@ -684,7 +751,7 @@ rules:
 
 This is a practical consequence of the private setters you added in Step 2. Even seed data must go through `UpdatePreparation()` to set the difficulty and prep time. The domain rules are enforced consistently, everywhere. The Fluent API configuration (`IsRequired`, `HasMaxLength`) replaces the data annotation attributes that were on the old model classes.
 
-### Task 4.3: Implement the repository classes
+### Task 4.3a: Implement the recipe repository
 
 Create `RecipeRepository.cs` in the `Persistence` folder. This class should implement `IRecipeRepository` and accept `RecipeCatalogDbContext` as a constructor parameter. You can refer to the existing `RecipesController` for the EF Core query patterns — the repository methods will contain much of the same data access code extracted from the controller actions.
 
@@ -696,36 +763,43 @@ Implement the methods:
 - **UpdateAsync**: call `_context.Recipes.Update(recipe)` then `SaveChangesAsync`.
 - **DeleteAsync**: find the recipe by ID, and if it exists, remove it and call `SaveChangesAsync`.
 
-Then create `CategoryRepository.cs` in the same folder. It should implement `ICategoryRepository` and accept `RecipeCatalogDbContext` as a constructor parameter.
-
-- **GetAllAsync**: return all categories ordered by `Name` using `ToListAsync`.
-- **GetByIdAsync**: use `_context.Categories.FindAsync(id)`.
-
-Both classes will need `using` statements for `Microsoft.EntityFrameworkCore`, `Pluralsight.CleanArchitecture.Application.Contracts`, and `Pluralsight.CleanArchitecture.Domain.Entities`.
+You will need `using` statements for `Microsoft.EntityFrameworkCore`, `Pluralsight.CleanArchitecture.Application.Contracts`, and `Pluralsight.CleanArchitecture.Domain.Entities`.
 
 ---
 Check: Pluralsight.CleanArchitecture.Infrastructure/Persistence/RecipeRepository.cs
 
 ```yaml
 rules:
-- id: task_4_3_recipe_repository_class
+- id: task_4_3a_recipe_repository_class
   pattern-regex: public\s+class\s+RecipeRepository\s*:\s*IRecipeRepository
   message: Create a `RecipeRepository` class that implements `IRecipeRepository`.
   languages: [C#]
   severity: WARNING
 
-- id: task_4_3_recipe_repository_include_category
+- id: task_4_3a_recipe_repository_include_category
   pattern-regex: \.Include\s*\(\s*r\s*=>\s*r\.Category\s*\)
   message: Use `.Include(r => r.Category)` to eager-load the category.
   languages: [C#]
   severity: WARNING
 ```
 
+---
+
+### Task 4.3b: Implement the category repository
+
+Create `CategoryRepository.cs` in the `Persistence` folder. It should implement `ICategoryRepository` and accept `RecipeCatalogDbContext` as a constructor parameter.
+
+- **GetAllAsync**: return all categories ordered by `Name` using `ToListAsync`.
+- **GetByIdAsync**: use `_context.Categories.FindAsync(id)`.
+
+You will need `using` statements for `Microsoft.EntityFrameworkCore`, `Pluralsight.CleanArchitecture.Application.Contracts`, and `Pluralsight.CleanArchitecture.Domain.Entities`.
+
+---
 Check: Pluralsight.CleanArchitecture.Infrastructure/Persistence/CategoryRepository.cs
 
 ```yaml
 rules:
-- id: task_4_3_category_repository_class
+- id: task_4_3b_category_repository_class
   pattern-regex: public\s+class\s+CategoryRepository\s*:\s*ICategoryRepository
   message: Create a `CategoryRepository` class that implements `ICategoryRepository`.
   languages: [C#]
@@ -738,7 +812,9 @@ The data access logic is the same as before, but now it lives in dedicated, focu
 
 ### Task 4.4: Create the FileNotificationService
 
-Create `FileNotificationService.cs` in the `Notifications` folder of the Infrastructure project. You will need a `using` statement for `Pluralsight.CleanArchitecture.Application.Contracts`. This class should implement `INotificationService` from the Application layer.
+Create a folder inside `Pluralsight.CleanArchitecture.Infrastructure` called `Notifications`. This will contain the notification service implementation.
+
+Create `FileNotificationService.cs` in the `Notifications` folder. You will need a `using` statement for `Pluralsight.CleanArchitecture.Application.Contracts`. This class should implement `INotificationService` from the Application layer.
 
 Implement the `SendNotificationAsync` method so that it writes a timestamped message to a file at `notifications/recipe-notifications.txt`. You can refer to the `File.AppendAllTextAsync` call in the existing `RecipesController.Create` action for the approach. Format each line as `[{timestamp}] {message}` followed by a newline, using `DateTime.UtcNow` formatted with the round-trip specifier (`"O"`).
 
@@ -764,7 +840,7 @@ rules:
 
 ### Task 4.5: Create the infrastructure service registration
 
-Again we need to register the components defined in the project with the dependency injection container.
+Again you need to register the components defined in the project with the dependency injection container.
 
 -
 

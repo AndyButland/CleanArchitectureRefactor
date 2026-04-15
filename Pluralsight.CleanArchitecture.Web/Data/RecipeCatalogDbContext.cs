@@ -11,16 +11,19 @@ public class RecipeCatalogDbContext : DbContext
     }
 
     public DbSet<Recipe> Recipes => Set<Recipe>();
+
     public DbSet<Category> Categories => Set<Category>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Configure the Category entity.
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(c => c.Id);
             entity.Property(c => c.Name).IsRequired().HasMaxLength(50);
         });
 
+        // Configure the Recipe entity.
         modelBuilder.Entity<Recipe>(entity =>
         {
             entity.HasKey(r => r.Id);
@@ -36,11 +39,13 @@ public class RecipeCatalogDbContext : DbContext
 
     private static void SeedData(ModelBuilder modelBuilder)
     {
+        // Define category IDs for seeding.
         var breakfastId = Guid.Parse("b1c2d3e4-1111-4000-a000-000000000001");
         var mainCourseId = Guid.Parse("b1c2d3e4-2222-4000-a000-000000000002");
         var dessertId = Guid.Parse("b1c2d3e4-3333-4000-a000-000000000003");
         var appetizerId = Guid.Parse("b1c2d3e4-4444-4000-a000-000000000004");
 
+        // Seed categories.
         modelBuilder.Entity<Category>().HasData(
             new Category { Id = breakfastId, Name = "Breakfast" },
             new Category { Id = mainCourseId, Name = "Main Course" },
@@ -48,6 +53,7 @@ public class RecipeCatalogDbContext : DbContext
             new Category { Id = appetizerId, Name = "Appetizer" }
         );
 
+        // Seed recipes.
         var pancakes = new Recipe
         {
             Id = Guid.Parse("a0000001-0001-4000-a000-000000000001"),
